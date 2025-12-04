@@ -198,6 +198,7 @@ templ generate
 templ generate --watch
 
 # Terminal 2 : Watch du serveur
+# Si air est installé (hot reload)
 air # ou go run .
 ```
 
