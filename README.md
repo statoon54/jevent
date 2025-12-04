@@ -188,7 +188,7 @@ type Event struct {
 ### Générer les templates après modification
 
 ```bash
-templ generate
+go tooltempl generate
 ```
 
 ### Mode watch (développement)
@@ -227,7 +227,7 @@ Pour déployer :
 
 1. Compiler le projet
 2. Copier le binaire sur le serveur
-3. Lancer `./jevent`
+3. Lancer `./minecraftevent`
 
 La base de données SQLite (`events.db`) sera créée automatiquement au premier démarrage.
 
