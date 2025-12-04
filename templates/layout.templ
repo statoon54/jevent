@@ -1,0 +1,60 @@
+package templates
+
+templ Layout(title string) {
+	<!DOCTYPE html>
+	<html lang="fr">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+			<link rel="stylesheet" href="/assets/styles.css"/>
+			<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		</head>
+		<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+			<nav class="bg-white shadow-md sticky top-0 z-50">
+				<div class="container mx-auto px-4 py-4">
+					<div class="flex justify-between items-center">
+						<a href="/" class="flex items-center gap-3 hover:opacity-80 transition">
+							<img src="/assets/img/logo-minecraft.png" alt="Logo" class="h-10 w-auto"/>
+							<span class="text-2xl font-bold text-blue-600">Minecraft Events Community</span>
+						</a>
+						<div class="space-x-4">
+							<a href="/" class="text-gray-700 hover:text-blue-600 transition font-medium">Événements</a>
+							<a href="/create" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+								Créer un événement
+							</a>
+						</div>
+					</div>
+				</div>
+			</nav>
+			<main class="container mx-auto px-4 py-8">
+				{ children... }
+			</main>
+			<footer class="bg-white shadow-md mt-12">
+				<div class="container mx-auto px-4 py-6 text-center text-gray-600">
+					<p>Built with Echo + Templ + TailwindCSS 4 🚀</p>
+				</div>
+			</footer>
+			<script>
+				function deleteEvent(id) {
+					if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
+						fetch('/delete/' + id, {
+							method: 'DELETE',
+						})
+						.then(response => {
+							if (response.ok) {
+								window.location.reload();
+							} else {
+								alert('Erreur lors de la suppression');
+							}
+						})
+						.catch(error => {
+							console.error('Erreur:', error);
+							alert('Erreur lors de la suppression');
+						});
+					}
+				}
+			</script>
+		</body>
+	</html>
+}

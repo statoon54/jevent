@@ -1,0 +1,169 @@
+package templates
+
+import (
+	"minecraftevent/models"
+	"fmt"
+	"time"
+)
+
+func formatDate(t time.Time) string {
+	return t.Format("02-01-2006")
+}
+
+func formatDateRange(start time.Time, end *time.Time) string {
+	if end == nil {
+		return "Le " + formatDate(start)
+	}
+	return fmt.Sprintf("Du %s au %s", formatDate(start), formatDate(*end))
+}
+
+templ Index(events []models.Event) {
+	@Layout("Événements à venir") {
+		<div class="mb-8">
+			<h1 class="text-4xl font-bold text-gray-800 mb-2">Événements à venir</h1>
+			<p class="text-gray-600">Découvrez tous les événements Minecraft à venir</p>
+		</div>
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+			for _, event := range events {
+				@EventCard(event)
+			}
+		</div>
+		if len(events) == 0 {
+			<div class="text-center py-12">
+				<p class="text-gray-500 text-xl">Aucun événement pour le moment</p>
+				<a href="/create" class="mt-4 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+					Créer le premier événement
+				</a>
+			</div>
+		}
+		if len(events) > 0 {
+			<div class="mt-16">
+				<h2 class="text-3xl font-bold text-gray-800 mb-8">Timeline des événements</h2>
+				@EventTimeline(events)
+			</div>
+		}
+	}
+}
+
+templ EventCard(event models.Event) {
+	<div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+		if event.ImageURL != "" {
+			<div class="h-48 overflow-hidden bg-gradient-to-r from-blue-400 to-purple-500">
+				<img
+					src={ event.ImageURL }
+					alt={ event.Title }
+					class="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+				/>
+			</div>
+		} else {
+			<div class="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+				<span class="text-white text-6xl">🎮</span>
+			</div>
+		}
+		<div class="p-6">
+			<h2 class="text-2xl font-bold text-gray-800 mb-2">{ event.Title }</h2>
+			<div class="flex items-center text-gray-600 mb-3">
+				<span class="text-sm font-medium">👤 { event.Organizer }</span>
+			</div>
+			<div class="flex items-center text-gray-600 mb-3">
+				<span class="text-sm">📅 { formatDateRange(event.StartDate, event.EndDate) }</span>
+			</div>
+			if event.Description != "" {
+				<p class="text-gray-700 mb-4 line-clamp-3">{ event.Description }</p>
+			}
+			<div class="flex gap-2 mt-4">
+				if event.DiscordURL != "" {
+					<a
+						href={ templ.URL(event.DiscordURL) }
+						target="_blank"
+						class="flex-1 inline-flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+					>
+						<span>Discord</span>
+						<svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+						</svg>
+					</a>
+				}
+				<a
+					href={ templ.URL(fmt.Sprintf("/edit/%d", event.ID)) }
+					class="inline-flex items-center justify-center bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+					title="Modifier"
+				>
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+					</svg>
+				</a>
+				<button
+					onclick={ templ.ComponentScript{Call: fmt.Sprintf("deleteEvent(%d)", event.ID)} }
+					class="inline-flex items-center justify-center bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+					title="Supprimer"
+				>
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+templ EventTimeline(events []models.Event) {
+	<div class="relative">
+		<div class="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-purple-500 to-pink-500"></div>
+		<div class="space-y-8">
+			for i, event := range events {
+				<div class="relative flex items-start gap-6 group">
+					<div class="relative z-10 flex-shrink-0">
+						<div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+							<span class="text-white text-2xl">{ fmt.Sprintf("%d", i+1) }</span>
+						</div>
+					</div>
+					<div class="flex-1 bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+						<div class="flex flex-col md:flex-row">
+							if event.ImageURL != "" {
+								<div class="md:w-48 h-48 md:h-auto overflow-hidden bg-gradient-to-r from-blue-400 to-purple-500">
+									<img
+										src={ event.ImageURL }
+										alt={ event.Title }
+										class="w-full h-full object-cover"
+									/>
+								</div>
+							}
+							<div class="flex-1 p-6">
+								<div class="flex items-start justify-between mb-2">
+									<h3 class="text-xl font-bold text-gray-800">{ event.Title }</h3>
+									<span class="text-sm text-gray-500 ml-4">{ formatDate(event.StartDate) }</span>
+								</div>
+								<p class="text-sm text-gray-600 mb-2">
+									<span class="font-medium">Organisateur:</span>
+									{ " " }
+									{ event.Organizer }
+								</p>
+								<p class="text-sm text-gray-600 mb-3">
+									<span class="font-medium">📅</span>
+									{ " " }
+									{ formatDateRange(event.StartDate, event.EndDate) }
+								</p>
+								if event.Description != "" {
+									<p class="text-gray-700 mb-3">{ event.Description }</p>
+								}
+								if event.DiscordURL != "" {
+									<a
+										href={ templ.URL(event.DiscordURL) }
+										target="_blank"
+										class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm"
+									>
+										<span>Rejoindre sur Discord</span>
+										<svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+										</svg>
+									</a>
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+}
